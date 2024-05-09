@@ -53,5 +53,5 @@ class Cropper:
         x1,y1,x2,y2 = [int(x) for x in pred_crop]
         cropped_image = cv2.rectangle(np.array(source_img) , (x1,y1), (x2,y2), (255,0,0), 2) 
         res, cropped_image = cv2.imencode(".jpeg", cv2.cvtColor(cropped_image , cv2.COLOR_BGR2RGB))
-        return cropped_image,x1,y2,x2,y2 
+        return cropped_image,x1,y1,x2,y2 
 

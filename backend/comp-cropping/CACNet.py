@@ -7,8 +7,7 @@ import einops
 import numpy as np
 from torchvision.ops import roi_pool
 
-from config_cropping import cfg
-
+IMAGE_SIZE = (224,224)
 class vgg_base(nn.Module):
     def __init__(self, loadweights=True):
         super(vgg_base, self).__init__()
@@ -218,8 +217,7 @@ class CACNet(nn.Module):
     def __init__(self, loadweights=True):
         super(CACNet, self).__init__()
         anchor_stride = 8
-        image_size = cfg.image_size
-        assert cfg.backbone == 'vgg16', cfg.backbone
+        image_size = IMAGE_SIZE
         self.backbone  = vgg_base(loadweights=loadweights)
         self.composition_module = CompositionModel()
         self.cropping_module = CroppingModel(anchor_stride)
@@ -235,13 +233,13 @@ class CACNet(nn.Module):
             box = self.post_process(offsets, kcm)
             return logits, kcm, box
 
-if __name__ == '__main__':
-    device = torch.device('cuda:0')
-    x = torch.randn(2,3, cfg.image_size[0],cfg.image_size[1])
-    model = CACNet(loadweights=True)
-    cls,kcm,box = model(x)
-    print(cls.shape, box.shape)
-    print('classification', cls)
-    print('box', box)
-    # model = ComClassifier()
-    # print(model(x))
+# if __name__ == '__main__':
+#     device = torch.device('cuda:0')
+#     x = torch.randn(2,3, cfg.image_size[0],cfg.image_size[1])
+#     model = CACNet(loadweights=True)
+#     cls,kcm,box = model(x)
+#     print(cls.shape, box.shape)
+#     print('classification', cls)
+#     print('box', box)
+#     # model = ComClassifier()
+#     # print(model(x))
