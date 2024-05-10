@@ -2,4 +2,5 @@ import streamlit as st
 
 class User:
     def __init__(self,):
-        self.image_file =0
+        self.image_file = None
+        self.recommended_crop = None
