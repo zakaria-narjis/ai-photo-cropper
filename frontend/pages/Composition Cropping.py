@@ -7,7 +7,7 @@ from streamlit import session_state as ss
 from user_session import User
 import time
 import numpy as np
-
+from zipfile import ZipFile
 
 box_color = '#FF0000'
 aspect_ratio = None
@@ -44,7 +44,9 @@ st.header("Composition Aware Cropping")
 
 
 ss.ai_crop = st.toggle(label = "AI Powered Cropping", value=True)
-ss.multi_crop = st.toggle("Multi image cropping",disabled=not ss.ai_crop)
+
+if ss.ai_crop:
+  ss.multi_crop = st.toggle("Multi image cropping",disabled=not ss.ai_crop)
 
 ss.user.image_file = st.file_uploader(
                             label=['Upload an image','Upload your images'][ss.multi_crop], 
@@ -54,8 +56,27 @@ ss.user.image_file = st.file_uploader(
 
 
 if ss.multi_crop :
-  if ss.user.image_file!= [] :
-    print(api.multi_crop(ss.user.image_file))
+  if ss.user.image_file != [] :  
+    crop_download = st.button("Crop & Download")
+    if crop_download: 
+      with st.spinner('Cropping image with AI magic, please wait...'):
+        crops = api.multi_crop(ss.user.image_file)
+        cropped_imgs = []
+        zip_file_bytes_io = io.BytesIO()
+        with ZipFile(zip_file_bytes_io, 'w') as zip_file:
+          for image,crop_result in zip (ss.user.image_file,crops['crops']):
+              img = Image.open(image)
+              cropped_img = img.crop(list(crop_result['coords'].values()))  
+              cropped_img = image_to_byte_array(cropped_img)
+              cropped_imgs.append(cropped_img)
+              zip_file.writestr(f"images/{crop_result['image_name']}", cropped_img)
+        
+      st.download_button(
+                label="Download cropped images",
+                data=zip_file_bytes_io,
+                file_name=f"cropped_images.zip",
+                mime="application/zip"
+              )   
     
 else:
   if ss.user.image_file!= None :

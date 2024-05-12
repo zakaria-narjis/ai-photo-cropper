@@ -24,21 +24,19 @@ class Bbox(BaseModel):
     y2:int
 
 class Crop(BaseModel):
-    id : str
     image_name:str
     coords :Bbox
 
 class MultiCrop(BaseModel):
-    # crops:list[Annotated[list[int], Len(min_length=4, max_length=4)]]
     crops:list[Crop]
 
 
-class Image(BaseModel):
-    id:str
-    file:Annotated[list[UploadFile], File(description="Multiple images files as UploadFile")] 
+# class Image(BaseModel):
+#     id:str
+#     file:
 
-class MultiCropInput(BaseModel):
-    images: Annotated[list[UploadFile], File(description="Multiple images files as UploadFile")] 
+# class MultiCropInput(BaseModel):
+#     images: list[Image]
 
 
 @app.get("/")
@@ -46,12 +44,12 @@ def home():
     return {"health_check": "OK"}
 
 @app.post("/one_crop/", response_model=Bbox)
-# image: Annotated[UploadFile, File(description="Multiple files as UploadFile")], typo: str = Form(...)
-async def one_image_crop(image: Annotated[UploadFile, File(description="One image files as UploadFile")]):
+
+async def one_image_crop(image: Annotated[UploadFile, File(description="One image file as UploadFile")] ):
     content = [await image.read()]
-    # image = Image.open(BytesIO(content)).convert('RGB')
+
     x1,y1,x2,y2 = crop.crop_images(images= content, multi = False)
-            # 'image':StreamingResponse(BytesIO(cropped_image.tobytes())),
+
     response_data = {
         'x1':x1,
         'y1':y1,
@@ -60,13 +58,14 @@ async def one_image_crop(image: Annotated[UploadFile, File(description="One imag
     }
     return response_data
 
-@app.post("/multicrop/", response_model = MultiCrop)
-async def multi_image_crop(images: MultiCropInput):
+@app.post("/multi_crop/", response_model = MultiCrop)
+async def multi_image_crop(images: Annotated[list[UploadFile], File(description="Multiple images files as UploadFile")] ):
+    print(images)
     content = [ await image.read() for image in images]
     crops_list = crop.crop_images(images = content, multi = True)
     response_data = {
-        'crops': [{'id':str(id(image)), 
-                   'image_name':image.filename, 
+        'crops': [{
+                    'image_name':image.filename, 
                    'coords':{
                         'x1':crop[0],
                         'y1':crop[1],
