@@ -18,6 +18,7 @@ if 'user' not in ss:
   ss.user = User()
   ss.multi_crop = False
   ss.ai_crop = True
+  ss.user.image_file = None
 
 def image_to_byte_array(image: Image) -> bytes:
   # BytesIO is a file-like buffer stored in memory
@@ -53,8 +54,9 @@ ss.user.image_file = st.file_uploader(
 
 
 if ss.multi_crop :
-  
-  pass
+  if ss.user.image_file!= [] :
+    print(api.multi_crop(ss.user.image_file))
+    
 else:
   if ss.user.image_file!= None :
 

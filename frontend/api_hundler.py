@@ -20,5 +20,20 @@ class CompositionAPI:
         response = requests.post(url, 
                                  data=multipart_data,
                                  headers=header)
-        print(response.json())
         return response.json()
+    
+    def multi_crop(images:list[bytes])->dict:
+        url = BASE_URL +'one_crop/'
+        multipart_data = MultipartEncoder(
+            fields={
+               'image':[{'id':1,'file':(image.name,image,image.type)} for image in images],
+            }
+            )
+        header ={
+            'Content-Type': multipart_data.content_type
+            }
+        
+        response = requests.post(url, 
+                                 data=multipart_data,
+                                 headers=header)
+        return response.json() 
