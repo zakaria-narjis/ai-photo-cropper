@@ -8,35 +8,23 @@ from user_session import User
 import time
 import numpy as np
 from zipfile import ZipFile
+from utils import image_to_byte_array, draw_rectangle
 
+#Manual Cropping Parameters
 box_color = '#FF0000'
 aspect_ratio = None
 stroke_width = 2
 realtime_update = True
+
+#One crop api delay
 API_DELAY = 1
+
+
 if 'user' not in ss:
   ss.user = User()
   ss.multi_crop = False
   ss.ai_crop = True
   ss.user.image_file = None
-
-def image_to_byte_array(image: Image) -> bytes:
-  # BytesIO is a file-like buffer stored in memory
-  imgByteArr = io.BytesIO()
-  # image.save expects a file-like as a argument
-  image.save(imgByteArr, format='png')
-  # Turn the BytesIO object back into a bytes object
-  imgByteArr = imgByteArr.getvalue()
-  return imgByteArr
-
-# def change_name():
-#     ss.ai_crop_label = ["Manual Cropping","AI Powered Cropping"][ss.ai_crop]
-
-def draw_rectangle(image: Image,bbox:dict)->Image:
-  img = image.copy()
-  draw = ImageDraw.Draw(img)
-  draw.rectangle(((bbox["x1"], bbox["y1"]),(bbox["x2"], bbox["y2"])), outline='Red')
-  return img
 
 st.set_option('deprecation.showfileUploaderEncoding', False)
 
@@ -59,18 +47,27 @@ if ss.multi_crop :
   if ss.user.image_file != [] :  
     crop_download = st.button("Crop & Download")
     if crop_download: 
-      with st.spinner('Cropping image with AI magic, please wait...'):
+      with st.spinner('Generating image crops with AI magic, please wait...'):
         crops = api.multi_crop(ss.user.image_file)
-        cropped_imgs = []
-        zip_file_bytes_io = io.BytesIO()
-        with ZipFile(zip_file_bytes_io, 'w') as zip_file:
-          for image,crop_result in zip (ss.user.image_file,crops['crops']):
-              img = Image.open(image)
-              cropped_img = img.crop(list(crop_result['coords'].values()))  
-              cropped_img = image_to_byte_array(cropped_img)
-              cropped_imgs.append(cropped_img)
-              zip_file.writestr(f"images/{crop_result['image_name']}", cropped_img)
-        
+
+      progress_text = "Cropping images progress. Please wait."
+      progress_bar = st.progress(0, text=progress_text)
+
+      cropped_imgs = []
+      zip_file_bytes_io = io.BytesIO()
+      with ZipFile(zip_file_bytes_io, 'w') as zip_file:
+        num_total_files = len(ss.user.image_file)
+        for index,(image,crop_result) in enumerate(zip (ss.user.image_file,crops['crops'])):
+            img = Image.open(image)
+            cropped_img = img.crop(list(crop_result['coords'].values()))  
+            cropped_img = image_to_byte_array(cropped_img)
+            cropped_imgs.append(cropped_img)
+            zip_file.writestr(f"images/{crop_result['image_name']}", cropped_img)
+            progress = int(((index+1)*100/num_total_files) )
+            progress_bar.progress(progress,progress_text )
+
+      progress_bar.empty()
+      
       st.download_button(
                 label="Download cropped images",
                 data=zip_file_bytes_io,
