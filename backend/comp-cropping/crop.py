@@ -72,8 +72,8 @@ class Cropper2:
 
     def resize_image(self,image):
         im_width, im_height = image.size
-        h = IMAGE_SIZE[1]
-        w = IMAGE_SIZE[0]
+        h = IMAGE_SIZE[0]
+        w = IMAGE_SIZE[1]
         resized_image = image.resize((w, h), Image.LANCZOS)
         return  resized_image, im_width, im_height
     
@@ -88,29 +88,38 @@ class Cropper2:
             im_widths.append(im_width)
             im_heights.append(im_height)
             resized_images.append(resized_image.unsqueeze(0))
-        im_widths = torch.tensor(im_width)
-        im_heights = torch.tensor(im_heights)
+        im_widths = torch.tensor(im_widths).unsqueeze(0)
+        im_heights = torch.tensor(im_heights).unsqueeze(0)
         resized_images = torch.cat(resized_images)
         return resized_images, im_widths ,im_heights 
     
     def predict(self,image):
-        logits,kcm,crop = self.model(image, only_classify=False)
+        with torch.no_grad():
+            logits,kcm,crop = self.model(image, only_classify=False)
         return logits,kcm,crop
 
     def crop_images(self,images,multi=False):
-        ims, im_widths, im_heights  = self.process_images(images)
-        ims = ims.to(self.device)
-        logits,kcm,crop = self.predict(ims)
-        crop[:,0::2] = crop[:,0::2] / IMAGE_SIZE[0] * im_widths
-        crop[:,1::2] = crop[:,1::2] / IMAGE_SIZE[1] * im_heights
-        pred_crop = crop.detach().cpu()
-        pred_crop = pred_crop.t()
-        pred_crop[0::2,:] = torch.clip(pred_crop[0::2,:], min=torch.zeros(pred_crop.shape[1]), max=im_widths)
-        pred_crop[1::2,:] = torch.clip(pred_crop[1::2,:], min=torch.zeros(pred_crop.shape[1]), max=im_heights)
-        pred_crop = pred_crop.t()
-        pred_crop = pred_crop.to(torch.int16)
-        if multi:
-            return pred_crop.tolist()
-        else:
-            x1,y1,x2,y2 = [int(x) for x in pred_crop[0].tolist()]
-            return  x1,y1,x2,y2 
+        with torch.no_grad():
+            ims, im_widths, im_heights  = self.process_images(images)
+            ims = ims.to(self.device)
+            logits,kcm,crop = self.predict(ims)
+            # print(crop,im_widths.t(),im_heights.t())
+            crop[:,0::2] = crop[:,0::2] / IMAGE_SIZE[1] * (im_widths.t())
+            crop[:,1::2] = crop[:,1::2] / IMAGE_SIZE[0] * (im_heights.t())
+            pred_crop = crop.detach().cpu()
+            # print(pred_crop, pred_crop.shape)
+            pred_crop = pred_crop.t()
+            pred_crop[0::2,:] = torch.clip(pred_crop[0::2,:], min=torch.zeros(pred_crop.shape[1]), max=im_widths)
+            pred_crop[1::2,:] = torch.clip(pred_crop[1::2,:], min=torch.zeros(pred_crop.shape[1]), max=im_heights)
+            pred_crop = pred_crop.t()
+            pred_crop = pred_crop.to(torch.int16)
+            if multi:
+                # for image,crop in zip(images,pred_crop.tolist()):
+                #     im = Image.open(BytesIO(image)).convert('RGB')
+                #     print(crop)
+                #     cropped_img = im.crop([int(x) for x in crop])
+                #     cropped_img.save(f'{id(image)}.png')
+                return pred_crop.tolist()
+            else:
+                x1,y1,x2,y2 = [int(x) for x in pred_crop[0].tolist()]
+                return  x1,y1,x2,y2 

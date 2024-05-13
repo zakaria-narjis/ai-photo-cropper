@@ -60,7 +60,6 @@ async def one_image_crop(image: Annotated[UploadFile, File(description="One imag
 
 @app.post("/multi_crop/", response_model = MultiCrop)
 async def multi_image_crop(images: Annotated[list[UploadFile], File(description="Multiple images files as UploadFile")] ):
-    print(images)
     content = [ await image.read() for image in images]
     crops_list = crop.crop_images(images = content, multi = True)
     response_data = {
