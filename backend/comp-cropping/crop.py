@@ -3,7 +3,6 @@ import cv2
 from CACNet import CACNet
 from PIL import Image
 import torchvision.transforms as transforms
-import numpy as np
 from io import BytesIO
 
 IMAGE_NET_MEAN = [0.485, 0.456, 0.406]

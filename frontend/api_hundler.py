@@ -1,7 +1,5 @@
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
-import json
-from io import BytesIO
 
 BASE_URL = 'http://127.0.0.1:8000/'
 class CompositionAPI:
