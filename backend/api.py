@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from fastapi import FastAPI, File, UploadFile ,Form
-from crop import Cropper, Cropper2
+from comp_cropping.crop import Cropper, Cropper2
 from pydantic import BaseModel, conlist
 from typing import Annotated
 
 
 app = FastAPI()
 crop = Cropper2()
-
+print(f'Working wiht {crop.device}')
 class Bbox(BaseModel):
     x1:int
     y1:int
