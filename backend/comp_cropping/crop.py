@@ -1,6 +1,5 @@
 import torch
-import cv2
-from CACNet import CACNet
+from comp_cropping.CACNet import CACNet
 from PIL import Image
 import torchvision.transforms as transforms
 from io import BytesIO
@@ -11,7 +10,7 @@ IMAGE_SIZE = (224,224)
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-WEIGHT_FILE = "./pretrained_models/best-FLMS_iou.pth"
+WEIGHT_FILE = "/app/backend/comp_cropping/pretrained_models/best-FLMS_iou.pth"
 # model = CACNet(loadweights=False)
 # model.load_state_dict(torch.load(weight_file,map_location=device))
 # model = model.to(device).eval()

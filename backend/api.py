@@ -7,6 +7,7 @@ from typing import Annotated
 
 app = FastAPI()
 crop = Cropper2()
+
 print(f'Working wiht {crop.device}')
 class Bbox(BaseModel):
     x1:int

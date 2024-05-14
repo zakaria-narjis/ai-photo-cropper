@@ -1,0 +1,5 @@
+comp_cropping/__pycache__
+comp_cropping/sample.jpg
+comp_cropping/sample2.jpg
+comp_cropping/test_crop.ipynb
+pretrained_models/best-acc.pth
