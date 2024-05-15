@@ -1,3 +1,5 @@
+
+
 services:
   frontend:
     build:
@@ -10,8 +12,8 @@ services:
       - project_network
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app/backend
+    # volumes:
+    #   - ./frontend:/app/backend
 
 
   backend:
@@ -23,6 +25,14 @@ services:
       - 8080:8080
     networks:
       - project_network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
       
 networks:
   project_network:
+

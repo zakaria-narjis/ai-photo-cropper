@@ -1,7 +1,7 @@
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-BASE_URL = 'http://0.0.0.0:8080/'
+BASE_URL = 'http://backend:8080/'
 class CompositionAPI:
 
     def one_crop(image:bytes)->dict:

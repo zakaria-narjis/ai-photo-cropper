@@ -4,13 +4,13 @@ FROM python:3.11.9-slim
 
 RUN mkdir -p /app/frontend
 
-COPY requirements.txt /app/frontend/requirements.txt
-COPY pages/ /app/frontend/pages/
+COPY frontend/requirements.txt /app/frontend/requirements.txt
+COPY frontend/pages/ /app/frontend/pages/
 
-COPY Home.py /app/frontend
-COPY user_session.py /app/frontend
-COPY utils.py /app/frontend
-COPY api_hundler.py /app/frontend
+COPY frontend/Home.py /app/frontend
+COPY frontend/user_session.py /app/frontend
+COPY frontend/utils.py /app/frontend
+COPY frontend/api_hundler.py /app/frontend
 
 WORKDIR /app/frontend
 
