@@ -1,12 +1,11 @@
 import streamlit as st
 from streamlit_cropper import st_cropper
-from PIL import Image, ImageDraw 
+from PIL import Image
 import io
 from api_hundler import CompositionAPI as api
 from streamlit import session_state as ss
 from user_session import User
 import time
-import numpy as np
 from zipfile import ZipFile
 from utils import image_to_byte_array, draw_rectangle
 
