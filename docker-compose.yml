@@ -1,0 +1,28 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: frontend:latest
+    ports:
+      - 8501:8501
+    networks:
+      - project_network
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app/backend
+
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: backend:latest
+    ports:
+      - 8080:8080
+    networks:
+      - project_network
+      
+networks:
+  project_network:
