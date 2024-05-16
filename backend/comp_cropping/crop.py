@@ -14,6 +14,14 @@ WEIGHT_FILE = "/app/backend/comp_cropping/pretrained_models/best-FLMS_iou.pth"
 # model = CACNet(loadweights=False)
 # model.load_state_dict(torch.load(weight_file,map_location=device))
 # model = model.to(device).eval()
+
+class ClearCache:
+    def __enter__(self):
+        torch.cuda.empty_cache()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        torch.cuda.empty_cache()
+
 class Cropper:
     def __init__(self,):
         self.device = DEVICE
@@ -66,7 +74,7 @@ class Cropper2:
         self.image_transformer = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=IMAGE_NET_MEAN, std=IMAGE_NET_STD)])
-        self.IMAGE_SIZE = torch.tensor(IMAGE_SIZE).to(self.device)
+        self.IMAGE_SIZE = torch.tensor(IMAGE_SIZE, requires_grad=False).to(self.device)
 
 
     def resize_image(self,image):
@@ -77,55 +85,60 @@ class Cropper2:
         return  resized_image, im_width, im_height
     
     def process_images(self,images_as_bytes:list[bytes])->tuple[list,list,list]:
-        im_widths = []
-        im_heights= []
-        resized_images =[]     
-        for image in images_as_bytes:
-            image = Image.open(BytesIO(image)).convert('RGB')
-            resized_image, im_width, im_height = self.resize_image(image)
-            resized_image = self.image_transformer(resized_image)
-            im_widths.append(im_width)
-            im_heights.append(im_height)
-            resized_images.append(resized_image.unsqueeze(0))
+        with ClearCache():
+            im_widths = []
+            im_heights= []
+            resized_images =[]     
+            for image in images_as_bytes:
+                image = Image.open(BytesIO(image)).convert('RGB')
+                resized_image, im_width, im_height = self.resize_image(image)
+                resized_image = self.image_transformer(resized_image)
+                im_widths.append(im_width)
+                im_heights.append(im_height)
+                resized_images.append(resized_image.unsqueeze(0))
 
-        im_widths = torch.tensor(im_widths).unsqueeze(0).to(self.device)
-        im_heights = torch.tensor(im_heights).unsqueeze(0).to(self.device)
-        resized_images = torch.cat(resized_images).to(self.device)
-        return resized_images, im_widths ,im_heights 
+            im_widths = torch.tensor(im_widths, requires_grad=False).unsqueeze(0).to(self.device)
+            im_heights = torch.tensor(im_heights, requires_grad=False).unsqueeze(0).to(self.device)
+            resized_images = torch.cat(resized_images).to(self.device)
+            resized_images.requires_grad=False
+            return resized_images, im_widths ,im_heights 
     
     def predict(self,image):
-        with torch.no_grad():
-            logits,kcm,crop = self.model(image, only_classify=False)
-        return logits,kcm,crop
+        with ClearCache():
+            with torch.no_grad():
+                logits,kcm,crop = self.model(image, only_classify=False)
+            return logits,kcm,crop
 
     def crop_images(self,images,multi=False):
-        with torch.no_grad():
-            ims, im_widths, im_heights  = self.process_images(images)
-            ims = ims.to(self.device)
-            logits,kcm,crop = self.predict(ims)
-            # print(crop,im_widths.t(),im_heights.t())
-            crop[:,0::2] = crop[:,0::2] / self.IMAGE_SIZE[1] * (im_widths.t())
-            crop[:,1::2] = crop[:,1::2] / self.IMAGE_SIZE[0] * (im_heights.t())
-            # pred_crop = crop.detach().cpu()
-            # print(pred_crop, pred_crop.shape)
-            pred_crop = crop.t()
-            
-            #Clip the out of range bbox crop
-            number_of_images = pred_crop.shape[1]
-            minimum_bbox_value = torch.zeros(number_of_images).to(self.device)        
-            pred_crop[0::2,:] = torch.clip(pred_crop[0::2,:], min=minimum_bbox_value , max=im_widths)
-            pred_crop[1::2,:] = torch.clip(pred_crop[1::2,:], min=minimum_bbox_value , max=im_heights)
+        with ClearCache():
+            with torch.no_grad():
+                ims, im_widths, im_heights  = self.process_images(images)
+                ims = ims.to(self.device)
+                logits,kcm,crop = self.predict(ims)
+                # print(crop,im_widths.t(),im_heights.t())
+                crop[:,0::2] = crop[:,0::2] / self.IMAGE_SIZE[1] * (im_widths.t())
+                crop[:,1::2] = crop[:,1::2] / self.IMAGE_SIZE[0] * (im_heights.t())
+                # pred_crop = crop.detach().cpu()
+                # print(pred_crop, pred_crop.shape)
+                pred_crop = crop.t()
+                
+                #Clip the out of range bbox crop
+                number_of_images = pred_crop.shape[1]
+                minimum_bbox_value = torch.zeros(number_of_images).to(self.device)        
+                pred_crop[0::2,:] = torch.clip(pred_crop[0::2,:], min=minimum_bbox_value , max=im_widths)
+                pred_crop[1::2,:] = torch.clip(pred_crop[1::2,:], min=minimum_bbox_value , max=im_heights)
 
-            pred_crop = pred_crop.t()
-            pred_crop = pred_crop.to(torch.int16)
-            pred_crop = pred_crop.detach().cpu()
-            if multi:
-                # for image,crop in zip(images,pred_crop.tolist()):
-                #     im = Image.open(BytesIO(image)).convert('RGB')
-                #     print(crop)
-                #     cropped_img = im.crop([int(x) for x in crop])
-                #     cropped_img.save(f'{id(image)}.png')
-                return pred_crop.tolist()
-            else:
-                x1,y1,x2,y2 = [int(x) for x in pred_crop[0].tolist()]
-                return  x1,y1,x2,y2 
+                pred_crop = pred_crop.t()
+                pred_crop = pred_crop.to(torch.int16)
+                pred_crop = pred_crop.detach().cpu()
+                del crop,kcm,logits,minimum_bbox_value ,ims, im_widths, im_heights 
+                if multi:
+                    # for image,crop in zip(images,pred_crop.tolist()):
+                    #     im = Image.open(BytesIO(image)).convert('RGB')
+                    #     print(crop)
+                    #     cropped_img = im.crop([int(x) for x in crop])
+                    #     cropped_img.save(f'{id(image)}.png')
+                    return pred_crop.tolist()
+                else:
+                    x1,y1,x2,y2 = [int(x) for x in pred_crop[0].tolist()]
+                    return  x1,y1,x2,y2 
