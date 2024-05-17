@@ -30,7 +30,7 @@ class ClipCrop:
                 crop_results = self.yolo_model(source_img)
                 results = crop_results.crop(save=False)
                 preprocessed_images = torch.stack([
-                    self.preprocess(Image.fromarray(result['im'])) for result in results]).to(self.device) 
+                    self.preprocess(Image.fromarray(result['im'])) for result in results])
                 preprocessed_images = torch.tensor(np.stack(preprocessed_images)).to(self.device)            
                 images_features = self.clip_model.encode_image(preprocessed_images)
                 text_encoded = self.clip_model.encode_text(clip.tokenize(search_query).to(self.device)) 

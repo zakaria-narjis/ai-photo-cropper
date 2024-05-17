@@ -10,7 +10,8 @@ IMAGE_SIZE = (224,224)
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-WEIGHT_FILE = "/app/backend/comp_cropping/pretrained_models/best-FLMS_iou.pth"
+# WEIGHT_FILE = "/app/backend/comp_cropping/pretrained_models/best-FLMS_iou.pth"
+WEIGHT_FILE = "comp_cropping/pretrained_models/best-FLMS_iou.pth"
 # model = CACNet(loadweights=False)
 # model.load_state_dict(torch.load(weight_file,map_location=device))
 # model = model.to(device).eval()
