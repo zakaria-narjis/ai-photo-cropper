@@ -2,3 +2,4 @@ torch==2.3.0
 fastapi==0.111.0
 torchvision==0.18.0
 einops==0.8.0
+clip @ git+https://github.com/openai/CLIP.git

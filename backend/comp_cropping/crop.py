@@ -109,7 +109,7 @@ class Cropper2:
                 logits,kcm,crop = self.model(image, only_classify=False)
             return logits,kcm,crop
 
-    def crop_images(self,images,multi=False):
+    def crop_images(self,images:list[bytes],multi=False):
         with ClearCache():
             with torch.no_grad():
                 ims, im_widths, im_heights  = self.process_images(images)
