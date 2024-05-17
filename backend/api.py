@@ -6,6 +6,7 @@ from typing import Annotated
 import torch
 from comp_cropping.crop import ClearCache
 from clipcrop.clipcrop import ClipCrop
+
 app = FastAPI()
 crop = Cropper2()
 clipcrop = ClipCrop()
@@ -14,6 +15,7 @@ clipcrop = ClipCrop()
 print(f'Working with {crop.device}')
 memory_model_size = torch.cuda.max_memory_allocated()/1024/1024
 print(f'{memory_model_size}')
+
 class Bbox(BaseModel):
     x1:int
     y1:int

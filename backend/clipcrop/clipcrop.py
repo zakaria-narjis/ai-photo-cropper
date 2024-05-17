@@ -1,6 +1,5 @@
 from PIL import Image
 import torch
-import matplotlib.pyplot as plt
 import clip
 import numpy as np
 from io import BytesIO
@@ -17,7 +16,7 @@ class ClearCache:
 class ClipCrop:
     def __init__(self,):
         self.device = DEVICE
-        self.yolo_model = torch.hub.load('ultralytics/yolov5', 'yolov5s',pretrained=True)
+        self.yolo_model = torch.hub.load('ultralytics/yolov5','yolov5s',pretrained=True)
         self.clip_model , self.preprocess = clip.load('ViT-B/32',self.device)
         self.yolo_model.to(self.device)
         self.yolo_model.eval()

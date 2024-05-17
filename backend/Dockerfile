@@ -8,6 +8,7 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y git
     
+RUN apt-get install ffmpeg libsm6 libxext6  -y    
 COPY backend/requirements.txt /app/backend/requirements.txt 
 COPY backend/comp_cropping/ /app/backend/comp_cropping/
 COPY backend/api.py /app/backend
