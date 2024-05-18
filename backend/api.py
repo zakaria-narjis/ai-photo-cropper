@@ -64,8 +64,9 @@ async def multi_image_crop(images: Annotated[list[UploadFile], File(description=
         print(torch.cuda.memory_summary())
         return response_data
 
-@app.post("/query_clip/", response_model = Bbox)
-async def clip_crop(image:Annotated[UploadFile, File(description="One image file as UploadFile")],query:str):
+@app.post("/clip_crop/", response_model = Bbox)
+async def clip_crop(image:Annotated[UploadFile, File(description="One image file as UploadFile")],
+                    query:str = Form(...)):
     with ClearCache():
         content = await image.read()
         x1,y1,x2,y2 = clipcrop.crop(content,query)

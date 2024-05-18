@@ -38,3 +38,22 @@ class CompositionAPI:
                                  data=multipart_data,
                                  headers=header)
         return response.json() 
+
+
+class ClipCropAPI:
+
+    def crop(image:bytes,query:str)->dict:
+        url = BASE_URL+'clip_crop/'
+        multipart_data = MultipartEncoder(
+            fields={
+               'image':(image.name,image,image.type),
+                'query':query
+            }
+            )
+        header ={
+            'Content-Type': multipart_data.content_type
+            }
+        response = requests.post(url, 
+                                 data=multipart_data,
+                                 headers=header)
+        return response.json() 
