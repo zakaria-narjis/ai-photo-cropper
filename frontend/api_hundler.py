@@ -6,11 +6,17 @@ class CompositionAPI:
 
     def one_crop(image:bytes)->dict:
         url = BASE_URL +'one_crop/'
+        try:
+            fields = {
+                'image':(image.name,image,image.type),
+                }
+        except:
+            fields = {
+                'image':('image',image,'jpg'),
+                }
         multipart_data = MultipartEncoder(
-            fields={
-               'image':(image.name,image,image.type),
-            }
-            )
+            fields=fields
+        )
         header ={
             'Content-Type': multipart_data.content_type
             }
@@ -22,9 +28,13 @@ class CompositionAPI:
     
     def multi_crop(images:list[bytes])->dict:
         url = BASE_URL +'multi_crop/'
-
-        fields=[
+        try:
+            fields=[
                    ('images',(f'{id(image)}_{image.name}',image,image.type)) for image in images
+                ]
+        except:
+            fields=[
+                   ('images',(f'{id(image)}_image',image,'jpg')) for image in images
                 ]
             
         multipart_data = MultipartEncoder(

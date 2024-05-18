@@ -40,7 +40,16 @@ ss.user.image_file = st.file_uploader(
                             type=['png', 'jpg'], 
                             accept_multiple_files=ss.multi_crop
                             )
-
+if ss.multi_crop==False and ss.ai_crop==True:
+  sample_image = st.selectbox(
+      "Choose a sample image",
+      ("University_Lubeck", "Frozen_lubeck_1", "Frozen_lubeck_2","Lubeck_Night"))
+  if st.button("Try sample"):
+    image_file = Image.open(f'sample_images/{sample_image.lower()}.jpg')
+    ss.user.image_file = io.BytesIO((image_to_byte_array(image_file)))
+    
+    if ss.multi_crop:
+      ss.user.image_file = [ss.user.image_file]
 
 if ss.multi_crop :
   if ss.user.image_file != [] :  
@@ -78,7 +87,10 @@ else:
   if ss.user.image_file!= None :
 
     img = Image.open(ss.user.image_file)
-
+    try:
+      file_name = f'{ss.user.image_file.name}.png'
+    except:
+      file_name = sample_image
     if ss.ai_crop:
 
       with st.spinner('Cropping image with AI magic, please wait...'):
@@ -87,7 +99,7 @@ else:
         time.sleep(API_DELAY)
       st.success('Done!')
       annotated_img = draw_rectangle(img,ss.user.recommended_crop)
-      st.image(annotated_img, caption=f'{ss.user.image_file.name}.png')
+      st.image(annotated_img, caption=file_name)
       cropped_img = img.crop(list(ss.user.recommended_crop.values()))
     else:
       cropped_img = st_cropper(img, 
@@ -105,6 +117,6 @@ else:
     st.download_button(
                 label="Download image",
                 data=image_to_byte_array(cropped_img),
-                file_name=f"Cropped_{ss.user.image_file.name}.png",
+                file_name=f"Cropped_{file_name}",
                 mime="image/png"
               )
