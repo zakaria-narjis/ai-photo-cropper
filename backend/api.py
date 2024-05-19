@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi import FastAPI, File, UploadFile ,Form
-from comp_cropping.crop import Cropper2
+from comp_cropping.crop import Cropper2, Cropper
 from pydantic import BaseModel, conlist
 from typing import Annotated
 import torch
@@ -13,8 +13,6 @@ clipcrop = ClipCrop()
 
 
 print(f'Working with {crop.device}')
-memory_model_size = torch.cuda.max_memory_allocated()/1024/1024
-print(f'{memory_model_size}')
 
 class Bbox(BaseModel):
     x1:int
@@ -59,9 +57,6 @@ async def multi_image_crop(images: Annotated[list[UploadFile], File(description=
                             'y2':crop[3]
                         }} for crop,image in zip(crops_list,images)]
                         }
-        memory_model_size = torch.cuda.max_memory_allocated()/1024/1024
-        print(f'{memory_model_size}')
-        print(torch.cuda.memory_summary())
         return response_data
 
 @app.post("/clip_crop/", response_model = Bbox)
@@ -77,8 +72,6 @@ async def clip_crop(image:Annotated[UploadFile, File(description="One image file
         'y2':y2
     }
         return response_data
-
-
 
 @app.get("/")
 def home():
