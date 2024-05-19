@@ -30,11 +30,11 @@ class CompositionAPI:
         url = BASE_URL +'multi_crop/'
         try:
             fields=[
-                   ('images',(f'{id(image)}_{image.name}',image,image.type)) for image in images
+                   ('images',(f'{image.name}_{id(image)}',image,image.type)) for image in images
                 ]
         except:
             fields=[
-                   ('images',(f'{id(image)}_image',image,'jpg')) for image in images
+                   ('images',(f'image_{id(image)}',image,'jpg')) for image in images
                 ]
             
         multipart_data = MultipartEncoder(
