@@ -8,7 +8,7 @@ class CompositionAPI:
         url = BASE_URL +'one_crop/'
         try:
             fields = {
-                'image':(image.name,image,image.type),
+                'image':(image.name.split(".")[0],image,image.type),
                 }
         except:
             fields = {
@@ -30,7 +30,7 @@ class CompositionAPI:
         url = BASE_URL +'multi_crop/'
         try:
             fields=[
-                   ('images',(f'{image.name}_{id(image)}',image,image.type)) for image in images
+                   ('images',(f'{image.name.split(".")[0]}_{id(image)}',image,image.type)) for image in images
                 ]
         except:
             fields=[

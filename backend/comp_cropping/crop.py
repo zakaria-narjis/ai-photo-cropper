@@ -5,6 +5,8 @@ import torchvision.transforms as transforms
 from io import BytesIO
 from torch.utils.data import DataLoader, Dataset
 import subprocess as sp
+from torch.profiler import profile, record_function, ProfilerActivity
+
 
 IMAGE_NET_MEAN = [0.485, 0.456, 0.406]
 IMAGE_NET_STD = [0.229, 0.224, 0.225]
@@ -131,8 +133,8 @@ class Cropper:
         with ClearCache():
             with torch.no_grad():
                 logits,kcm,crop = self.model(image, only_classify=False)
-            return logits,kcm,crop
-        
+        return logits,kcm,crop
+            
     # def get_gpu_memory():
     #     command = "nvidia-smi --query-gpu=memory.free --format=csv"
     #     memory_free_info = sp.check_output(command.split()).decode('ascii').split('\n')[:-1][1:]
@@ -153,7 +155,7 @@ class Cropper:
         with ClearCache():           
             with torch.no_grad():
                 dataset = ImagesDataset(images)
-                batch_size  = 10
+                batch_size  = 20
                 data_loader = DataLoader(dataset,
                                         batch_size=batch_size,
                                         shuffle=False,
@@ -162,11 +164,9 @@ class Cropper:
                                         )
                 crops =[]
                 for im,im_width,im_height in data_loader:
-                    print(im.shape,im_width.shape,im_height.shape)
                     im = im.to(self.device)
                     im_height=torch.reshape(im_height,(1,-1)).to(self.device)
                     im_width=torch.reshape(im_width,(1,-1)).to(self.device)
-                    print(im.shape,im_width.shape,im_height.shape)
                     logits,kcm,crop = self.predict(im)
                     crop[:,0::2] = crop[:,0::2] / self.IMAGE_SIZE[1] * (im_width.t())
                     crop[:,1::2] = crop[:,1::2] / self.IMAGE_SIZE[0] * (im_height.t())
@@ -183,9 +183,8 @@ class Cropper:
                     crops.extend(pred_crop.tolist())
 
                 del data_loader,dataset
-
-                if multi:
-                    return crops
-                else:
-                    x1,y1,x2,y2 = [int(x) for x in crops[0]]
-                    return  x1,y1,x2,y2 
+            if multi:
+                return crops
+            else:
+                x1,y1,x2,y2 = [int(x) for x in crops[0]]
+                return  x1,y1,x2,y2 

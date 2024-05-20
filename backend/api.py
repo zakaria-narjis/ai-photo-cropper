@@ -1,14 +1,13 @@
 from fastapi import FastAPI
 from fastapi import FastAPI, File, UploadFile ,Form
 from comp_cropping.crop import Cropper2, Cropper
-from pydantic import BaseModel, conlist
+from pydantic import BaseModel
 from typing import Annotated
-import torch
 from comp_cropping.crop import ClearCache
 from clipcrop.clipcrop import ClipCrop
 
 app = FastAPI()
-crop = Cropper2()
+crop = Cropper()
 clipcrop = ClipCrop()
 
 
