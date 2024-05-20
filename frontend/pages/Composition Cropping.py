@@ -70,7 +70,7 @@ if ss.multi_crop :
             cropped_img = img.crop(list(crop_result['coords'].values()))  
             cropped_img = image_to_byte_array(cropped_img)
             cropped_imgs.append(cropped_img)
-            zip_file.writestr(f"images/{crop_result['image_name']}", cropped_img)
+            zip_file.writestr(f"images/{crop_result['image_name']}.png", cropped_img)
             progress = int(((index+1)*100/num_total_files) )
             progress_bar.progress(progress,progress_text )
 
@@ -87,10 +87,13 @@ else:
   if ss.user.image_file!= None :
 
     img = Image.open(ss.user.image_file)
-    try:
-      file_name = f'{ss.user.image_file.name}.png'
-    except:
+
+    try:#try if the image is uploaded
+      file_name = ss.user.image_file.name.split(".")[0]
+      file_name = f'{file_name}.png'
+    except:#except, then the image used is a sample image (spaggetti fixing)
       file_name = sample_image
+
     if ss.ai_crop:
 
       with st.spinner('Cropping image with AI magic, please wait...'):
@@ -113,7 +116,6 @@ else:
       st.write("Preview")
       cropped_img.thumbnail((150,150))
       st.image(cropped_img)
-
     st.download_button(
                 label="Download image",
                 data=image_to_byte_array(cropped_img),
