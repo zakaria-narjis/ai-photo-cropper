@@ -7,7 +7,7 @@ from comp_cropping.crop import ClearCache
 from clipcrop.clipcrop import ClipCrop
 
 app = FastAPI()
-crop = Cropper()
+crop = Cropper2()
 clipcrop = ClipCrop()
 
 
