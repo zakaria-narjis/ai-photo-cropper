@@ -74,11 +74,9 @@ class Cropper2:
                 ims, im_widths, im_heights  = self.process_images(images)
                 ims = ims.to(self.device)
                 logits,kcm,crop = self.predict(ims)
-                print(ims.shape,im_widths.shape,im_heights.shape)
                 crop[:,0::2] = crop[:,0::2] / self.IMAGE_SIZE[1] * (im_widths.t())
                 crop[:,1::2] = crop[:,1::2] / self.IMAGE_SIZE[0] * (im_heights.t())
-                pred_crop = crop.t()
-                
+                pred_crop = crop.t()               
                 #Clip the out of range bbox crop
                 number_of_images = pred_crop.shape[1]
                 minimum_bbox_value = torch.zeros(number_of_images).to(self.device)        
