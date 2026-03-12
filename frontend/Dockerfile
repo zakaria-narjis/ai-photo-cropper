@@ -12,7 +12,7 @@ COPY frontend/sample_images/ /app/frontend/sample_images/
 COPY frontend/Home.py /app/frontend
 COPY frontend/user_session.py /app/frontend
 COPY frontend/utils.py /app/frontend
-COPY frontend/api_hundler.py /app/frontend
+COPY frontend/api_handler.py /app/frontend
 
 WORKDIR /app/frontend
 
